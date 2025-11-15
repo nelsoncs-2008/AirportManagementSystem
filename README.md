@@ -2,17 +2,15 @@
 <h1 align="center">✈️ Airport Management System</h1>
 
 <p align="center">
-A complete Python-based airport management system with MySQL backend, CSV flight storage, ticket booking & cancellation, receipts, and a polished CLI interface.
+A complete Python-based airport management system with MySQL backend, CSV flight storage, ticket booking & cancellation, and receipts.
 <br>
-<b>Admin + User + Receipts + MySQL + CSV</b>
-<br><br>
-
+<br>
 <!-- BADGES -->
-<img src="https://img.shields.io/badge/Python-3.10%2B-blue?style=for-the-badge">
-<img src="https://img.shields.io/badge/MySQL-Database-orange?style=for-the-badge">
-<img src="https://img.shields.io/badge/CLI-Application-success?style=for-the-badge">
-<img src="https://img.shields.io/badge/Status-Active-brightgreen?style=for-the-badge">
-<img src="https://img.shields.io/badge/License-Free-lightgrey?style=for-the-badge">
+<img src="https://img.shields.io/badge/Python-3.10%2B-blue">
+<img src="https://img.shields.io/badge/MySQL-Database-orange">
+<img src="https://img.shields.io/badge/CLI-Application-success">
+<img src="https://img.shields.io/badge/Status-Active-brightgreen">
+<img src="https://img.shields.io/badge/License-MIT-yellow">
 </p>
 
 ---
@@ -123,11 +121,12 @@ python main.py
 # 📸 Screenshots
 (Add actual screenshots later for a stronger GitHub + LinkedIn impact)
 
-> ![Admin Menu](screenshots/admin_menu.png)
-> ![User Login](screenshots/user_login.png)
-> ![Search Flights](screenshots/search_flights.png)
-> ![Booking Receipt](screenshots/booking_receipt.png)
-> ![Cancellation Receipt](screenshots/cancellation_receipt.png)
+> ![Admin Login]("https://github.com/user-attachments/assets/8a9d3098-829c-490b-8786-ca2a71c1114e")
+> ![View Flights Admin]("https://github.com/user-attachments/assets/317f95a9-706a-4952-9c62-b4da3924129b")
+> ![Flight Removal - Admin]("https://github.com/user-attachments/assets/521f82c2-e854-424e-8719-558771e993ee")
+> ![User Login]("https://github.com/user-attachments/assets/fcdbfb1b-e309-4c84-b216-f518eb90c84d")
+> ![User Registration]("https://github.com/user-attachments/assets/85175c5a-3c0b-4c1c-baed-7bff5d594c03")
+> ![Flight Booking and Cancellation]("https://github.com/user-attachments/assets/838e86f1-76dd-43d0-b8cc-77803e48dda7")
 
 
 ---
@@ -180,4 +179,5 @@ https://www.instagram.com/nelson.cs_2008/
 ---
 
 # 📜 License
-This project is free to use for educational and academic purposes.
+This project is licensed under the MIT License.
+See the LICENSE file for full terms.
