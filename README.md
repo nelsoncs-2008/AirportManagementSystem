@@ -21,7 +21,6 @@ A complete Python-based airport management system with MySQL backend, CSV flight
 - [Tech Stack](#-tech-stack)
 - [Project Structure](#-project-structure)
 - [Setup Instructions](#-setup-instructions)
-- [Screenshots](#-screenshots)
 - [Sample Flights Data](#-sample-flights-data)
 - [Future Enhancements](#-future-enhancements)
 - [Author](#-author)
@@ -115,19 +114,6 @@ pip install mysql-connector-python tabulate
 ```bash
 python main.py
 ```
-
----
-
-# 📸 Screenshots
-(Add actual screenshots later for a stronger GitHub + LinkedIn impact)
-
-> ![Admin Login]("https://github.com/user-attachments/assets/8a9d3098-829c-490b-8786-ca2a71c1114e")
-> ![View Flights Admin]("https://github.com/user-attachments/assets/317f95a9-706a-4952-9c62-b4da3924129b")
-> ![Flight Removal - Admin]("https://github.com/user-attachments/assets/521f82c2-e854-424e-8719-558771e993ee")
-> ![User Login]("https://github.com/user-attachments/assets/fcdbfb1b-e309-4c84-b216-f518eb90c84d")
-> ![User Registration]("https://github.com/user-attachments/assets/85175c5a-3c0b-4c1c-baed-7bff5d594c03")
-> ![Flight Booking and Cancellation]("https://github.com/user-attachments/assets/838e86f1-76dd-43d0-b8cc-77803e48dda7")
-
 
 ---
 
