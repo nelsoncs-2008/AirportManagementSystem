@@ -15,19 +15,6 @@ A complete Python-based airport management system with MySQL backend, CSV flight
 
 ---
 
-# 📑 Table of Contents
-- [Overview](#-overview)
-- [Features](#-features)
-- [Tech Stack](#-tech-stack)
-- [Project Structure](#-project-structure)
-- [Setup Instructions](#-setup-instructions)
-- [Sample Flights Data](#-sample-flights-data)
-- [Future Enhancements](#-future-enhancements)
-- [Author](#-author)
-- [License](#-license)
-
----
-
 # 📝 Overview
 This project simulates an **Airport Management System** with real-world functionalities like:
 
