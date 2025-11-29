@@ -1,0 +1,15 @@
+----------------------------------
+     AIRPORT MANAGEMENT SYSTEM
+----------------------------------
+            BOOKING RECEIPT
+----------------------------------
+Receipt ID   : RCPT1764427664
+Username     : sample_user
+Flight ID    : FL100
+Source       : USA
+Destination  : IND
+Price/Seat   : 120000.0
+Seats Booked : 3
+Total Cost   : 360000.0
+----------------------------------
+Thank you for choosing our service!

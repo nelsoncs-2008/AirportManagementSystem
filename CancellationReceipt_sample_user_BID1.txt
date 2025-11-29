@@ -1,0 +1,17 @@
+----------------------------------
+     AIRPORT MANAGEMENT SYSTEM
+----------------------------------
+         CANCELLATION RECEIPT
+----------------------------------
+Original Booking ID: 1
+Username           : sample_user
+Flight ID          : FL100
+Source             : USA
+Destination        : IND
+Seats Cancelled    : 3
+Original Amount    : 360000.0
+Amount Refunded    : 270000.0
+Reason             : test
+Cancellation on    : 2025-11-29 20:19:06
+----------------------------------
+Thank you for choosing our service!

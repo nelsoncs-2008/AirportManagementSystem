@@ -1,0 +1,15 @@
+----------------------------------
+     AIRPORT MANAGEMENT SYSTEM
+----------------------------------
+            BOOKING RECEIPT
+----------------------------------
+Receipt ID   : RCPT1764427696
+Username     : sample_user
+Flight ID    : FL111
+Source       : Chennai
+Destination  : Mumbai
+Price/Seat   : 6000.0
+Seats Booked : 4
+Total Cost   : 24000.0
+----------------------------------
+Thank you for choosing our service!
