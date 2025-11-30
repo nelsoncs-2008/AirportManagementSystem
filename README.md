@@ -50,8 +50,9 @@ You need the following installed on your system:
 
 1.  **Clone the repository:**
     ```bash
-    git clone [https://github.com/nelsoncs-2008/AirportManagementSystem.git](https://github.com/nelsoncs-2008/AirportManagementSystem.git)
+    git clone https://github.com/nelsoncs-2008/AirportManagementSystem.git
     cd AirportManagementSystem
+
     ```
 
 2.  **Install Python dependencies:**
