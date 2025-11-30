@@ -58,7 +58,6 @@ You need the following installed on your system:
     ```bash
     pip install -r requirements.txt
     ```
-    *(Requires the `requirements.txt` file created above.)*
 
 3.  **Run the application:**
     ```bash
