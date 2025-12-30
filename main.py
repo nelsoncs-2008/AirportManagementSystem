@@ -6,6 +6,7 @@ from login import show_login_menu
 print("=======================================")
 print("      Airport Management System")
 print("=======================================")
+
 initialize_database()   # Create DB and tables if missing
 ensure_file_exists()    # Ensure flights CSV exists with headers
 show_login_menu()       # Enter main interactive menu

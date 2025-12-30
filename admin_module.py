@@ -40,7 +40,7 @@ def admin_menu():
 def add_flight():
     """Add a new flight ensuring the flight ID is unique. Exit option is 'cancel'."""
     flights = read_flights()
-    existing_ids = {f[0] for f in flights}
+    existing_ids = {f[0].upper() for f in flights if len(f) >= 1}
     
     # Loop for Flight ID input
     while True:
@@ -127,7 +127,8 @@ def remove_flight():
 
         original_count = len(flights)
         # Check if the Flight ID exists before attempting removal
-        if fid not in [f[0] for f in flights]:
+        if fid not in [f[0].upper() for f in flights if len(f) >= 1]:
+
             print(f"Flight ID '{fid}' not found. Please try again or type 'cancel'.")
             continue
             
