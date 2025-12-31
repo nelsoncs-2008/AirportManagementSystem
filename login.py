@@ -3,15 +3,28 @@ from db_connection import get_connection
 from user_module import user_menu
 from admin_module import admin_menu
 
+# Check if the email has an @ and a dot in the right place
+def is_valid_email(email):
+    if email.count("@") != 1:
+        return False
+    parts = email.split("@")
+    if not parts[0] or not parts[1]:
+        return False
+    if "." not in parts[1]:
+        return False
+    domain_parts = parts[1].split(".")
+    if not domain_parts[0] or len(domain_parts[-1]) < 2:
+        return False
+    return True
+
+# The first menu shown when the program starts
 def show_login_menu():
-    """Top-level menu presented at program start."""
     while True:
-        print("""
-=== Airport Management System ===
-1. Admin Login
-2. User
-3. Exit
-""")
+        print("\n=== Airport Management System ===")
+        print("1. Admin Login")
+        print("2. User")
+        print("3. Exit")
+        
         choice = input("Enter choice: ").strip()
         if choice == "1":
             admin_login()
@@ -21,18 +34,17 @@ def show_login_menu():
             print("Goodbye!")
             break
         else:
-            print("Invalid choice.")
+            print("Invalid choice. Please try again.")
             time.sleep(1)
 
+# Options for users to register or login
 def user_submenu():
-    """User submenu routing to register/login/back."""
     while True:
-        print("""
-=== User Menu ===
-1. Register New User
-2. Login Existing User
-3. Back to Main Menu
-""")
+        print("\n=== User Menu ===")
+        print("1. Register New User")
+        print("2. Login Existing User")
+        print("3. Back")
+        
         ch = input("Enter choice: ").strip()
         if ch == "1":
             register_user(auto_login=True)
@@ -42,115 +54,123 @@ def user_submenu():
                 user_menu(username)
         elif ch == "3":
             break
-        else:
-            print("Invalid choice.")
-            time.sleep(1)
 
+# Admin login section
 def admin_login():
-    """Authenticate admin credentials against admin table."""
-    u = input("Admin username: ").strip()
-    p = input("Password: ").strip()
-    
     con = get_connection()
     if not con: return
     cur = con.cursor()
-    
-    cur.execute("SELECT password FROM admin WHERE username=%s", (u,))
-    row = cur.fetchone()
-    
-    if row and row[0] == p:
-        print("Admin login successful!")
-        time.sleep(1)
-        admin_menu()
-    else:
-        print("Invalid credentials.")
-        time.sleep(1)
 
-    cur.close()
-    con.close()
-
-def register_user(auto_login=False):
-    """Register a new user, ensuring uniqueness."""
-    con = get_connection()
-    if not con: return
-    cur = con.cursor()
-    
     while True:
-        uname = input("Choose Username: ").strip()
-        if not uname:
+        u = input("Admin username (or 'cancel'): ").strip()
+        if not u:
             print("Username cannot be empty.")
             continue
-            
-        cur.execute("SELECT id FROM users WHERE username=%s", (uname,))
-        if cur.fetchone():
-            print("Username already exists.")
-            continue
-        break
+        if u.lower() == 'cancel':
+            cur.close(); con.close(); return
         
-    while True:
-        email = input("Enter Email: ").strip()
-        if not email or "@" not in email:
-            print("Invalid email format.")
+        # Check if admin exists before asking for password
+        cur.execute("SELECT password FROM admin WHERE username=%s", (u,))
+        row = cur.fetchone()
+        if not row:
+            print("Admin name not found.")
             continue
-            
-        cur.execute("SELECT id FROM users WHERE email=%s", (email,))
-        if cur.fetchone():
-            print("Email already registered.")
-            continue
-        break
         
-    pwd = input("Choose Password: ").strip()
-    if not pwd:
-        print("Password cannot be empty. Registration aborted.")
-        cur.close()
-        con.close()
-        time.sleep(1)
-        return
+        # User exists, now ask for password
+        while True:
+            p = input("Password (or 'cancel'): ").strip()
+            if p.lower() == 'cancel':
+                cur.close(); con.close(); return
+            
+            if p == row[0]:
+                print(f"Welcome back, {u}!")
+                cur.close(); con.close()
+                admin_menu()
+                return
+            else:
+                print("Wrong password.")
 
-    cur.execute("INSERT INTO users (username, email, password) VALUES (%s, %s, %s)", (uname, email, pwd))
-    con.commit()
-    cur.close()
-    con.close()
-    print("User registered successfully!")
-    time.sleep(1)
-    if auto_login:
-        print(f"Welcome, {uname}!")
-        time.sleep(1)
-        user_menu(uname)
-
-def user_login():
-    """Prompt for username/email and password. Re-prompts until valid or cancelled."""
+# Create a new user account
+def register_user(auto_login=False):
     con = get_connection()
     if not con: return
     cur = con.cursor()
+
+    # Get a new username
     while True:
-        identifier = input("Enter Username/MailId (or 'cancel'): ").strip()
+        uname = input("Choose Username (or 'cancel'): ").strip()
+        if not uname: continue
+        if uname.lower() == 'cancel':
+            cur.close(); con.close(); return
+        cur.execute("SELECT id FROM users WHERE username=%s", (uname,))
+        if cur.fetchone():
+            print("That name is taken.")
+            continue
+        break
+
+    # Get email with format hint
+    while True:
+        email = input("Enter Email (sample@domain.com) or 'cancel': ").strip()
+        if email.lower() == 'cancel':
+            cur.close(); con.close(); return
+        if not is_valid_email(email):
+            print("Email format is wrong.")
+            continue
+        cur.execute("SELECT id FROM users WHERE email=%s", (email,))
+        if cur.fetchone():
+            print("Email is already used.")
+            continue
+        break
+
+    # Get password
+    while True:
+        pwd = input("Choose Password (or 'cancel'): ").strip()
+        if not pwd: continue
+        if pwd.lower() == 'cancel':
+            cur.close(); con.close(); return
+        break
+
+    # Save to database
+    cur.execute("INSERT INTO users (username, email, password) VALUES (%s, %s, %s)", (uname, email, pwd))
+    con.commit()
+    cur.close(); con.close()
+    
+    print("Account created!")
+    print(f"Welcome, {uname}!") # Greeting for new user
+    time.sleep(1)
+    
+    if auto_login: 
+        user_menu(uname)
+
+# Login for existing users
+def user_login():
+    con = get_connection()
+    if not con: return
+    cur = con.cursor()
+
+    while True:
+        identifier = input("Username/Email (or 'cancel'): ").strip()
+        if not identifier: continue
         if identifier.lower() == "cancel":
-            print("Returning to previous menu...")
-            cur.close()
-            con.close()
-            time.sleep(1)
-            return None
-        pwd = input("Enter Password (or 'cancel'): ").strip()
-        if pwd.lower() == "cancel":
-            print("Returning to previous menu...")
-            cur.close()
-            con.close()
-            time.sleep(1)
-            return None
+            cur.close(); con.close(); return None
+
+        # Check user exists first
         cur.execute("SELECT username, password FROM users WHERE username=%s OR email=%s", (identifier, identifier))
         row = cur.fetchone()
-        if row and row[1] == pwd:
-            uname = row[0]
-            print(f"Welcome back, {uname}!")
-            cur.close()
-            con.close()
-            time.sleep(1)
-            return uname
-        else:
-            print("Invalid username/email or password.")
-            time.sleep(1)
-    # This point is unreachable due to the while True loop, but for completeness:
-    # cur.close()
-    # con.close()
-    # return None
+        if not row:
+            print("User not found.")
+            continue
+        
+        # User found, check password
+        actual_name, stored_pwd = row
+        while True:
+            pwd = input("Enter Password (or 'cancel'): ").strip()
+            if pwd.lower() == "cancel":
+                cur.close(); con.close(); return None
+            
+            if pwd == stored_pwd:
+                print(f"Welcome back, {actual_name}!") # Greeting for returning user
+                cur.close(); con.close()
+                return actual_name
+            else:
+                print("Incorrect password.")

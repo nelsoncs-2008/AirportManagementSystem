@@ -6,7 +6,7 @@ FLIGHTS_CSV = "flights.csv"
 HEADERS = ["id", "source", "destination", "price", "seats"]
 
 def ensure_file_exists():
-    """Create flights.csv with headers if missing."""
+    # create flights csv if it does not exist
     try:
         open(FLIGHTS_CSV, "r").close()
     except FileNotFoundError:
@@ -15,54 +15,50 @@ def ensure_file_exists():
             writer.writerow(HEADERS)
 
 def read_flights():
-    """Read flights.csv and return list of records, ensuring IDs are uppercase."""
+    # read flight data from csv file
     ensure_file_exists()
     data = []
     with open(FLIGHTS_CSV, "r", newline="") as f:
         reader = csv.reader(f)
         data = list(reader)
-    
-    # Check if header exists and skip it
+
     records = data
     if records and records[0] == HEADERS:
         records = data[1:]
-    
-    # Ensure all flight IDs are uppercase when read (modifying in place)
-    # This maintains consistency for lookups against the mutable list
+
+    # make sure flight ids are in uppercase
     for r in records:
         if r and len(r) > 0:
             r[0] = r[0].upper()
-            
+
     return records
 
 def write_flights(flights):
-    """Overwrite the flights.csv file with the provided flights list, ensuring IDs are uppercase."""
-    
-    # Ensure all IDs are uppercase before writing back
+    # write all flight records back to csv
     formatted_flights = []
     for f in flights:
         if f and len(f) > 0:
             f[0] = f[0].upper()
         formatted_flights.append(f)
-        
+
     with open(FLIGHTS_CSV, "w", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(HEADERS)
         writer.writerows(formatted_flights)
 
 def append_flight(flight):
-    """Append a single flight row to CSV, ensuring ID is uppercase."""
+    # add a new flight record to csv
     ensure_file_exists()
-    
+
     if flight and len(flight) > 0:
         flight[0] = flight[0].upper()
-        
+
     with open(FLIGHTS_CSV, "a", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(flight)
 
 def display_table(records, headers=HEADERS):
-    """Pretty-print records using tabulate."""
+    # display data in table format
     if not records:
         print("No records available.")
         time.sleep(1)

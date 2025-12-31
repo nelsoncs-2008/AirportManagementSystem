@@ -5,7 +5,7 @@ from db_connection import get_connection
 from tabulate import tabulate
 
 def user_menu(username):
-    """User dashboard loop (search, book, feedback, view, cancel, exit)."""
+    # main menu for user
     while True:
         print(f"""
 --- User Menu ({username}) ---
@@ -36,22 +36,25 @@ def user_menu(username):
             time.sleep(1)
 
 def _get_user_by_identifier(identifier):
-    """Fetch (id, username, email) from users table by username or email."""
+    # get user details using username or email
     con = get_connection()
     cur = con.cursor()
-    cur.execute("SELECT id, username, email FROM users WHERE username=%s OR email=%s", (identifier, identifier))
+    cur.execute(
+        "SELECT id, username, email FROM users WHERE username=%s OR email=%s",
+        (identifier, identifier)
+    )
     row = cur.fetchone()
     cur.close()
     con.close()
     return row
 
-def generate_receipt(receipt_id, username, flight, num_seats=1, kind="booking", total_cost=None, refunded=0.0, reason=None):
-    """Create booking or cancellation receipt text file."""
+def generate_receipt(receipt_id, username, flight, num_seats=1, kind="booking",
+                    total_cost=None, refunded=0.0, reason=None):
+    # creates booking or cancellation receipt file
     if kind == "booking":
         fname = f"BookingReceipt_{username}_{receipt_id}.txt"
     else:
-        # Note: Using booking_id as part of the filename for cancellation for easy lookup
-        fname = f"CancellationReceipt_{username}_BID{receipt_id}.txt" 
+        fname = f"CancellationReceipt_{username}_BID{receipt_id}.txt"
 
     price_per_seat = float(flight[3]) if flight and len(flight) > 3 else (total_cost or 0.0)
     total = total_cost if total_cost is not None else (price_per_seat * num_seats)
@@ -60,6 +63,7 @@ def generate_receipt(receipt_id, username, flight, num_seats=1, kind="booking", 
         f.write("----------------------------------\n")
         f.write("     AIRPORT MANAGEMENT SYSTEM\n")
         f.write("----------------------------------\n")
+
         if kind == "booking":
             f.write("            BOOKING RECEIPT\n")
             f.write("----------------------------------\n")
@@ -85,35 +89,36 @@ def generate_receipt(receipt_id, username, flight, num_seats=1, kind="booking", 
             f.write(f"Original Amount    : {total}\n")
             f.write(f"Amount Refunded    : {refunded}\n")
             f.write(f"Reason             : {reason or 'No reason provided'}\n")
-            f.write(f"Cancellation on    : {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            f.write(
+                f"Cancellation on    : "
+                f"{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+            )
+
         f.write("----------------------------------\n")
         f.write("Thank you for choosing our service!\n")
     time.sleep(0.5)
 
 def search_flights():
-    """Search flights by source/destination and price range, show matches. Exit option is 'cancel' if inside an input prompt."""
+    # search flights using filters
     flights = read_flights()
     if not flights:
         print("No flights available.")
         time.sleep(1)
         return
-        
+
     src = input("Enter source (blank = all): ").strip().lower()
     dst = input("Enter destination (blank = all): ").strip().lower()
-    
-    # Loop for Min Price input
+
     while True:
         pmin_input = input("Min price (0 = none): ").strip() or "0"
         try:
             pmin = float(pmin_input)
             if pmin < 0:
-                print("Min price cannot be negative. Setting to 0.")
                 pmin = 0
             break
         except ValueError:
-            print("Invalid price. Please enter a number.")
+            print("Invalid price.")
 
-    # Loop for Max Price input
     while True:
         pmax_input = input("Max price (blank = no max): ").strip() or "inf"
         if pmax_input.lower() == "inf":
@@ -122,11 +127,11 @@ def search_flights():
         try:
             pmax = float(pmax_input)
             if pmax < 0:
-                print("Max price cannot be negative. Please try again.")
+                print("Max price cannot be negative.")
                 continue
             break
         except ValueError:
-            print("Invalid price. Please enter a number or leave blank for no maximum.")
+            print("Invalid price.")
 
     results = []
     for f in flights:
@@ -146,12 +151,12 @@ def search_flights():
         print("No flights matched your search.")
         time.sleep(1)
         return
-        
+
     print("\n--- Search Results ---")
     display_table(results)
 
 def book_flight(username):
-    """Book seats, record in MySQL, and decrement CSV seats. Exit option is 'cancel'."""
+    # book seats for a flight
     flights = read_flights()
     if not flights:
         print("No flights available to book.")
@@ -160,59 +165,45 @@ def book_flight(username):
 
     print("\n--- Available Flights to Book ---")
     display_table(flights)
-    
-    selected = None
-    
-    # Loop for Flight ID input
+
     while True:
         fid_input = input("Enter Flight ID to book (or 'cancel'): ").strip()
         if fid_input.lower() == "cancel":
             print("Booking cancelled.")
             time.sleep(1)
             return
-            
+
         fid = fid_input.upper()
-        # Find the selected flight
         selected = next((f for f in flights if f[0].upper() == fid), None)
-        
+
         if not selected:
-            print("Invalid Flight ID. Please re-enter the ID from the list.")
-            # Re-display the list of available flights
-            print("\n--- Available Flights to Book ---")
+            print("Invalid Flight ID.")
             display_table(flights)
             continue
         break
-        
-    try:
-        seats_available = int(selected[4])
-    except ValueError:
-        print("Error: Invalid seat count stored for this flight.")
-        time.sleep(1)
-        return
-        
+
+    seats_available = int(selected[4])
     if seats_available <= 0:
-        print("No seats available for this flight.")
+        print("No seats available.")
         time.sleep(1)
         return
 
-    # Loop for number of seats input
     while True:
-        num_input = input(f"How many seats to book? (Available: {seats_available}) (or 'cancel'): ").strip()
+        num_input = input(
+            f"How many seats to book? (Available: {seats_available}): "
+        ).strip()
         if num_input.lower() == "cancel":
             print("Booking cancelled.")
             time.sleep(1)
             return
         try:
             num = int(num_input)
-            if num <= 0:
-                print("You must book at least 1 seat.")
-                continue
-            if num > seats_available:
-                print(f"Only {seats_available} seat(s) available. Please enter a lower number.")
+            if num <= 0 or num > seats_available:
+                print("Invalid number of seats.")
                 continue
             break
         except ValueError:
-            print("Enter a valid number for the seats.")
+            print("Invalid input.")
 
     user_row = _get_user_by_identifier(username)
     if not user_row:
@@ -224,211 +215,221 @@ def book_flight(username):
     con = get_connection()
     cur = con.cursor()
     receipt_id = f"RCPT{int(time.time())}"
-    
+
     try:
         cur.execute(
-            "INSERT INTO bookings (user_id, flight_id, receipt_id, seats_booked) VALUES (%s, %s, %s, %s)",
+            "INSERT INTO bookings (user_id, flight_id, receipt_id, seats_booked) "
+            "VALUES (%s, %s, %s, %s)",
             (user_id, selected[0], receipt_id, num)
         )
         con.commit()
 
-        # Decrement seats in CSV
         for f in flights:
             if f[0].upper() == selected[0].upper():
-                 f[4] = str(seats_available - num)
-                 break
+                f[4] = str(seats_available - num)
+                break
         write_flights(flights)
 
         total_cost = float(selected[3]) * num
-        print(f"✅ Booking successful! {num} seat(s) booked.")
-        
-        generate_receipt(receipt_id, username, selected, num, kind="booking", total_cost=total_cost)
-        print(f"Receipt generated: BookingReceipt_{username}_{receipt_id}.txt")
+        print("Booking successful.")
+
+        generate_receipt(
+            receipt_id, username, selected, num,
+            kind="booking", total_cost=total_cost
+        )
         time.sleep(1.5)
     except Exception as e:
-        print(f"An error occurred during booking: {e}")
+        print("Booking error:", e)
         time.sleep(1)
     finally:
         cur.close()
         con.close()
 
 def send_feedback(username):
-    """Store user feedback. Exit option is 'cancel'."""
-    msg = input("Enter feedback (or 'cancel' to go back): ").strip()
+    # store user feedback
+    msg = input("Enter feedback (or 'cancel'): ").strip()
     if msg.lower() == "cancel" or not msg:
-        if not msg:
-            print("Feedback was empty. Returning to menu.")
         return
-        
+
     user_row = _get_user_by_identifier(username)
     if not user_row:
         print("User not found.")
         return
-    uid = user_row[0]
-    
+
     con = get_connection()
     cur = con.cursor()
-    cur.execute("INSERT INTO feedback (user_id, message) VALUES (%s, %s)", (uid, msg))
+    cur.execute(
+        "INSERT INTO feedback (user_id, message) VALUES (%s, %s)",
+        (user_row[0], msg)
+    )
     con.commit()
     cur.close()
     con.close()
-    
-    print("Feedback submitted. Thank you!")
+
+    print("Feedback submitted.")
     time.sleep(1)
 
 def view_my_bookings(username):
-    """Display current user's bookings with total cost."""
+    # show bookings of current user
     user_row = _get_user_by_identifier(username)
     if not user_row:
         print("User not found.")
         time.sleep(1)
         return
-    uid = user_row[0]
-    
+
     con = get_connection()
     cur = con.cursor()
     cur.execute("""
-        SELECT b.id, b.flight_id, b.seats_booked, b.booking_date, b.receipt_id
-        FROM bookings b WHERE b.user_id=%s ORDER BY b.booking_date DESC
-    """, (uid,))
+        SELECT b.id, b.flight_id, b.seats_booked,
+               b.booking_date, b.receipt_id
+        FROM bookings b
+        WHERE b.user_id=%s
+        ORDER BY b.booking_date DESC
+    """, (user_row[0],))
     rows = cur.fetchall()
     cur.close()
     con.close()
-    
+
     if not rows:
-        print("\nNo bookings found for your account.")
+        print("No bookings found.")
         time.sleep(1)
         return
 
     flights = read_flights()
-    # Map uses uppercase ID for consistent lookup
     flight_map = {f[0].upper(): f for f in flights}
+
     display_rows = []
-    
     for r in rows:
         bid, fid, seats, bdate, receipt = r
-        flight = flight_map.get(fid.upper()) # Lookup using uppercase ID
+        flight = flight_map.get(fid.upper())
         
+        # Check if flight still exists in the system
         if flight:
-            try:
-                price = float(flight[3])
-            except:
-                price = 0.0
-            total = price * seats
-            display_rows.append([bid, fid, flight[1], flight[2], seats, total, bdate])
+            src = flight[1]
+            dst = flight[2]
+            price = float(flight[3])
         else:
-            display_rows.append([bid, fid, "Flight Not Found", "Flight Not Found", seats, 0.0, bdate])
+            # Placeholder text if the flight was deleted by admin
+            src = "N/A (Deleted)"
+            dst = "N/A (Deleted)"
+            price = 0.0
+            
+        total = price * seats
+        display_rows.append([bid, fid, src, dst, seats, total, bdate])
 
-    print("\n--- Your Active Bookings ---")
-    print(tabulate(display_rows, headers=["Booking ID", "Flight ID", "Source", "Destination", "Seats", "Total Cost", "Date"], tablefmt="grid"))
+    print("\n--- Your Bookings ---")
+    print(tabulate(
+        display_rows,
+        headers=["Booking ID", "Flight ID", "Source",
+                "Destination", "Seats", "Total Cost", "Date"],
+        tablefmt="grid"
+    ))
     time.sleep(1.5)
 
 def cancel_booking(username):
-    """
-    Cancel a booking, record in cancelled_bookings, process 75% refund, and restore seats in CSV. Exit option is 'cancel'.
-    """
+    # cancel a booking and process refund
     user_row = _get_user_by_identifier(username)
     if not user_row:
         print("User not found.")
         time.sleep(1)
         return
-    uid = user_row[0]
 
     con = get_connection()
     cur = con.cursor()
+
     try:
         cur.execute("""
-            SELECT b.id, b.flight_id, b.seats_booked, b.booking_date, b.receipt_id
-            FROM bookings b WHERE b.user_id=%s ORDER BY b.booking_date DESC
-        """, (uid,))
+            SELECT b.id, b.flight_id, b.seats_booked,
+            b.booking_date, b.receipt_id
+            FROM bookings b
+            WHERE b.user_id=%s
+            ORDER BY b.booking_date DESC
+        """, (user_row[0],))
         bookings = cur.fetchall()
-        
+
         if not bookings:
-            print("You have no active bookings to cancel.")
+            print("No bookings to cancel.")
             time.sleep(1)
             return
 
         flights = read_flights()
         flight_map = {f[0].upper(): f for f in flights}
+
         display_rows = []
-        
-        # Pre-calculate display rows
         for b in bookings:
             bid, fid, seats, bdate, receipt = b
-            flight = flight_map.get(fid.upper()) 
-            
+            flight = flight_map.get(fid.upper())
             price = float(flight[3]) if flight else 0.0
             total = price * seats
-            display_rows.append([bid, fid, flight[1] if flight else "-", flight[2] if flight else "-", seats, total, bdate])
+            display_rows.append([bid, fid, seats, total, bdate])
 
-        print("\n--- Your Active Bookings ---")
-        print(tabulate(display_rows, headers=["Booking ID", "Flight ID", "Source", "Destination", "Seats", "Total Cost", "Booking Date"], tablefmt="grid"))
-        
-        selected = None
-        
-        # Loop for Booking ID input
+        print("\n--- Your Bookings ---")
+        print(tabulate(
+            display_rows,
+            headers=["Booking ID", "Flight ID", "Seats", "Total", "Date"],
+            tablefmt="grid"
+        ))
+
         while True:
-            bid_input = input("\nEnter Booking ID to cancel (or 'cancel' to go back): ").strip()
+            bid_input = input("Enter Booking ID to cancel (or 'cancel'): ").strip()
             if bid_input.lower() == "cancel":
-                print("Cancellation aborted.")
-                time.sleep(1)
                 return
             if not bid_input.isdigit():
-                print("Invalid Booking ID. Enter a numeric ID from the list.")
+                print("Invalid ID.")
                 continue
             bid = int(bid_input)
-
             selected = next((b for b in bookings if b[0] == bid), None)
-            
             if selected:
                 break
-            else:
-                print(f"Booking ID '{bid}' not found. Please re-enter a valid ID.")
-
+            print("Booking ID not found.")
 
         booking_id, flight_id, seats_booked, booking_date, receipt_id = selected
         flight = flight_map.get(flight_id.upper())
-        
+
         price_per_seat = float(flight[3]) if flight else 0.0
         total_amount = price_per_seat * seats_booked
         amount_refunded = round(total_amount * 0.75, 2)
 
-        reason = input("Enter reason for cancellation (optional, press Enter to skip): ").strip() or "No reason provided"
-
-        # Store cancellation record
+        reason = input("Reason (optional): ").strip() or "No reason provided"
         cancellation_date = datetime.datetime.now()
+
         cur.execute("""
             INSERT INTO cancelled_bookings
-            (booking_id, username, flight_id, seats_booked, total_amount, amount_refunded, booking_date, cancellation_date, reason)
+            (booking_id, username, flight_id, seats_booked,
+            total_amount, amount_refunded,
+            booking_date, cancellation_date, reason)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-        """, (booking_id, username, flight_id, seats_booked, total_amount, amount_refunded, booking_date, cancellation_date, reason))
+        """, (
+            booking_id, username, flight_id, seats_booked,
+            total_amount, amount_refunded,
+            booking_date, cancellation_date, reason
+        ))
         con.commit()
 
-        # Restore seats in CSV
         if flight:
             for f in flights:
-                # Match using uppercase ID
-                if f[0].upper() == flight_id.upper(): 
-                    try:
-                        f[4] = str(int(f[4]) + seats_booked)
-                    except:
-                        f[4] = str(seats_booked)
+                if f[0].upper() == flight_id.upper():
+                    f[4] = str(int(f[4]) + seats_booked)
                     break
             write_flights(flights)
 
-        # Delete booking from bookings table
         cur.execute("DELETE FROM bookings WHERE id=%s", (booking_id,))
         con.commit()
 
-        # Generate cancellation receipt (using booking_id as the receipt identifier)
-        generate_receipt(booking_id, username, flight, num_seats=seats_booked, kind="cancellation", total_cost=total_amount, refunded=amount_refunded, reason=reason)
+        generate_receipt(
+            booking_id, username, flight,
+            num_seats=seats_booked,
+            kind="cancellation",
+            total_cost=total_amount,
+            refunded=amount_refunded,
+            reason=reason
+        )
 
-        print("Booking cancelled successfully.")
-        print(f"Refund (75%): {amount_refunded} will be processed.")
+        print("Booking cancelled.")
         time.sleep(2)
 
     except Exception as e:
-        print(f"An error occurred during cancellation: {e}")
+        print("Cancellation error:", e)
         time.sleep(1)
     finally:
         cur.close()

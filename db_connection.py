@@ -5,30 +5,22 @@ CONFIG_FILE = "db_config.txt"
 
 
 def load_mysql_password():
-    """
-    Load MySQL password from CONFIG_FILE.
-    If file is missing, asks user repeatedly until the correct password is entered.
-    Save the password ONLY after a successful MySQL connection.
-    """
-
-    # Try reading from config file
+    # loads mysql password from file or asks user
     try:
         with open(CONFIG_FILE, "r") as f:
             for line in f:
                 if line.startswith("password="):
                     return line.strip().split("=", 1)[1]
     except FileNotFoundError:
-        pass  # First run, password file missing
+        pass  # first time run
 
-    print("\n🛠 MySQL password not found!")
-    print("Please enter the password for your MySQL (root) user.")
-    print("The password will be saved ONLY after a successful connection.\n")
+    print("\nMySQL password not found.")
+    print("Enter the MySQL root password.\n")
 
-    # Ask until the password is correct
+    # keep asking until correct password is entered
     while True:
         pwd = input("Enter your MySQL password: ").strip()
 
-        # Attempt MySQL connection to verify
         try:
             test_con = mysql.connector.connect(
                 host="localhost",
@@ -37,21 +29,19 @@ def load_mysql_password():
             )
             test_con.close()
 
-            # Save password only if the connection succeeded
+            # save password after successful connection
             with open(CONFIG_FILE, "w") as f:
                 f.write(f"password={pwd}")
 
-            print("\n✔ Connection successful!")
-            print("✔ Password stored for future runs.")
+            print("\nConnection successful.")
             return pwd
         except mysql.connector.Error as err:
-            print(f"\n❌ Failed to connect to MySQL: {err.msg}")
-            print("Please try again.")
+            print("Connection failed:", err.msg)
             time.sleep(1)
 
 
 def get_connection(database="airport_db"):
-    """Establish and return a connection to the specified database."""
+    # returns database connection
     password = load_mysql_password()
     try:
         con = mysql.connector.connect(
@@ -62,26 +52,26 @@ def get_connection(database="airport_db"):
         )
         return con
     except mysql.connector.Error as err:
-        print(f"Connection failed: {err.msg}")
+        print("Connection failed:", err.msg)
         return None
 
+
 def initialize_database():
-    """Create the database and necessary tables if they don't exist."""
+    # creates database and tables
     password = load_mysql_password()
     try:
-        # Connect without specifying a database first
         con = mysql.connector.connect(
             host="localhost",
             user="root",
             password=password
         )
         cur = con.cursor()
-        
-        # Create database
+
+        # create database
         cur.execute("CREATE DATABASE IF NOT EXISTS airport_db")
         con.database = "airport_db"
 
-        # Admin table
+        # admin table
         cur.execute("""
         CREATE TABLE IF NOT EXISTS admin (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -90,7 +80,7 @@ def initialize_database():
         )
         """)
 
-        # Users table
+        # users table
         cur.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -100,7 +90,7 @@ def initialize_database():
         )
         """)
 
-        # Bookings table
+        # bookings table
         cur.execute("""
         CREATE TABLE IF NOT EXISTS bookings (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -113,7 +103,7 @@ def initialize_database():
         )
         """)
 
-        # Feedback table
+        # feedback table
         cur.execute("""
         CREATE TABLE IF NOT EXISTS feedback (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -124,7 +114,7 @@ def initialize_database():
         )
         """)
 
-        # Cancelled bookings table
+        # cancelled bookings table
         cur.execute("""
         CREATE TABLE IF NOT EXISTS cancelled_bookings (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -140,7 +130,7 @@ def initialize_database():
         )
         """)
 
-        # Default admin setup
+        # create default admin if not present
         cur.execute("SELECT COUNT(*) FROM admin")
         if cur.fetchone()[0] == 0:
             cur.execute(
@@ -148,10 +138,10 @@ def initialize_database():
                 ("admin", "admin123")
             )
             con.commit()
-            print("Default admin 'admin' with password 'admin123' created.")
+            print("Default admin created.")
 
         cur.close()
         con.close()
 
     except mysql.connector.Error as err:
-        print(f"Database initialization failed: {err.msg}")
+        print("Database setup failed:", err.msg)
